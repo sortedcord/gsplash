@@ -4,7 +4,6 @@ import subprocess
 import threading
 import time
 import tkinter as tk
-
 from PIL import Image, ImageTk
 
 
@@ -25,16 +24,10 @@ def main():
     root.config(cursor="none")
 
     try:
-        # Pillow opens the JPEG, and ImageTk converts it for Tkinter
         pil_img = Image.open(image_path)
         splash_img = ImageTk.PhotoImage(pil_img)
-
         label = tk.Label(root, image=splash_img, bg="black")
-
-        # Keep a hidden reference to the image.
-        # Python's garbage collector will delete it otherwise, leaving a blank screen.
         label.image = splash_img
-
         label.pack(expand=True)
     except Exception as e:
         print(f"Error loading image: {e}. Falling back to text.")
@@ -47,19 +40,25 @@ def main():
 
     def monitor_game():
         time.sleep(0.5)
+        # Launch the game
         process = subprocess.Popen(game_command)
         state["game_started"] = True
 
+        # Keep this script alive as long as the game process is running
         while process.poll() is None:
             time.sleep(0.1)
 
+        # THE GAME HAS QUIT: Now safely shut down the script entirely
+        print("Game closed. Exiting wrapper script.")
         root.after(0, root.destroy)
 
+    # Start the monitoring thread
     threading.Thread(target=monitor_game, daemon=True).start()
 
     def on_focus_out(event):
         if state["game_started"]:
-            root.after(300, root.destroy)
+            # THE GAME WINDOW SHOWED UP: Hide the splash window instead of closing the script
+            root.after(300, root.withdraw)
 
     root.bind("<FocusOut>", on_focus_out)
     root.bind("<Escape>", lambda e: root.destroy())
