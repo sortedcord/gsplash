@@ -4,7 +4,7 @@ pkgrel=1
 pkgdesc="A lightweight native SDL2 splash screen wrapper for game launchers."
 arch=('x86_64')
 license=('custom')
-depends=('sdl2' 'sdl2_image')
+depends=('sdl2' 'sdl2_image' 'ffmpeg')
 makedepends=('make' 'gcc' 'pkgconf')
 
 # Leave this empty so makepkg doesn't look for external downloads or local copies
