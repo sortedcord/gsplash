@@ -19,6 +19,14 @@ A fullscreen splash-screen wrapper for launching a game or app. It displays an i
 
 ## Install
 
+Arch Linux (PKGBUILD) for integrating with your system package manager:
+
+```bash
+makepkg -si
+```
+
+For other distributions, build and install manually:
+
 ```bash
 make
 sudo make install
