@@ -37,9 +37,9 @@ sudo make install
 Build output installs to `/usr/local/bin` by default. Override with `PREFIX`.
 
 ```bash
-game-splash <image_path> <game_executable> [game_arguments...]
+gsplash <image_path> <game_executable> [game_arguments...]
 ```
 
 ```bash
-game-splash assets/splash.jpg /path/to/game --fullscreen --profile=default
+gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
 ```
