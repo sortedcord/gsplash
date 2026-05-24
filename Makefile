@@ -23,7 +23,7 @@ BUILD_TARGET := $(BUILD_DIR)/gsplash
 PKG_TOP ?= pkg/gsplash-git
 PKG_DIR := $(PKG_TOP)/usr
 BIN_DIR := $(PKG_DIR)/bin
-PKG_TARGET := $(BIN_DIR)/game-splash
+PKG_TARGET := $(BIN_DIR)/gsplash
 
 # Installation Paths (Defaults to user local bin)
 PREFIX ?= /usr/local
@@ -61,7 +61,7 @@ check: $(BUILD_TARGET)
 	SDL_VIDEODRIVER=dummy $(BUILD_TARGET) nonexistent.png /bin/true || true
 	@echo "Smoke test finished"
 
-# Install binary system-wide (installs as game-splash)
+# Install binary system-wide (installs as gsplash)
 install: $(BUILD_TARGET)
 	install -Dm755 $(BUILD_TARGET) $(DESTDIR)$(PREFIX)/bin/$(notdir $(PKG_TARGET))
 
