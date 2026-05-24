@@ -11,7 +11,7 @@ SDL_CFLAGS := $(shell $(PKG_CONFIG) --cflags sdl2 SDL2_image)
 SDL_LIBS := $(shell $(PKG_CONFIG) --libs sdl2 SDL2_image)
 
 ALL_CFLAGS := $(CFLAGS) $(SDL_CFLAGS)
-ALL_LIBS := $(LIBS) $(SDL_LIBS)
+ALL_LIBS := $(LIBS) $(SDL_LIBS) -lm
 
 TARGET = gsplash
 SRC = src/gsplash.c

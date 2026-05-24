@@ -49,11 +49,25 @@ make check
 ## Usage
 
 ```bash
-./gsplash <image_path> <game_executable> [game_arguments...]
+gsplash <image_path> <game_executable> [game_arguments...]
 ```
 
 Example:
 
 ```bash
-./gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
+gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
+```
+
+Gsplash allows you to configure how the image is displayed with 3 modes:
+
+- `center` (default): letterbox
+- `crop`: fill screen by cropping
+- `stretch`: Distort to fill screen
+
+You can set these by using the `-m` or `--mode` flag:
+
+```bash
+gsplash [--mode=stretch|center|crop] <image> <executable> [args...]
+
+gsplash -m stretch|center|crop <image> <executable> [args...]
 ```
