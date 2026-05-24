@@ -1,77 +1,40 @@
-# Compiler settings
-CC = gcc
-CFLAGS = -O2 -Wall -Wextra $(shell pkg-config --cflags sdl2 SDL2_image)
-LIBS = $(shell pkg-config --libs sdl2 SDL2_image)
+# Makefile for gsplash (community-standard layout)
 
-# Project Structure
-SRC = src/gsplash.c
-
-# Package output path (default to pkg layout used in repository)
-PKG_DIR ?= pkg/gsplash-git/usr
-BIN_DIR := $(PKG_DIR)/bin
-# Compiler settings
-CC = gcc
-CFLAGS = -O2 -Wall -Wextra $(shell pkg-config --cflags sdl2 SDL2_image)
-LIBS = $(shell pkg-config --libs sdl2 SDL2_image)
-
-SRC = src/gsplash.c
-
-# Build output (temporary) and package layout
-BUILD_DIR := build
-BUILD_TARGET := $(BUILD_DIR)/gsplash
-
-PKG_TOP ?= pkg/gsplash-git
-PKG_DIR := $(PKG_TOP)/usr
-BIN_DIR := $(PKG_DIR)/bin
-PKG_TARGET := $(BIN_DIR)/gsplash
-
-# Installation Paths (Defaults to user local bin)
 PREFIX ?= /usr/local
+bindir ?= $(PREFIX)/bin
 
-# Default target: build the temporary artifact
-all: $(BUILD_TARGET)
+CC ?= gcc
+CFLAGS ?= -O2 -Wall -Wextra
+PKG_CONFIG ?= pkg-config
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+SDL_CFLAGS := $(shell $(PKG_CONFIG) --cflags sdl2 SDL2_image)
+SDL_LIBS := $(shell $(PKG_CONFIG) --libs sdl2 SDL2_image)
 
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+ALL_CFLAGS := $(CFLAGS) $(SDL_CFLAGS)
+ALL_LIBS := $(LIBS) $(SDL_LIBS)
 
-# Build rule: produce a temporary build artifact in build/
-$(BUILD_TARGET): $(BUILD_DIR) $(SRC)
-	$(CC) $(CFLAGS) $(SRC) -o $(BUILD_TARGET) $(LIBS)
-	chmod 0755 $(BUILD_TARGET)
+TARGET = gsplash
+SRC = src/gsplash.c
 
-# Package: copy build artifact into pkg layout and create a tarball
-.PHONY: package dist
-package: $(BUILD_TARGET) $(BIN_DIR)
-	cp -a $(BUILD_TARGET) $(PKG_TARGET)
-	chmod 0755 $(PKG_TARGET)
-	mkdir -p dist
-	# Create a tarball of the package top-level directory
-	tar -C pkg -czf dist/$(notdir $(PKG_TOP)).tar.gz $(notdir $(PKG_TOP))
+.PHONY: all clean install uninstall check
 
-dist: package
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $< -o $@ $(ALL_LIBS)
 
 # Lightweight smoke test (headless via SDL_VIDEODRIVER=dummy)
-.PHONY: check
-check: $(BUILD_TARGET)
+check: $(TARGET)
 	@echo "Running smoke test (headless)..."
-	# Run with a non-existent image and a noop target (/bin/true) - exits quickly
-	SDL_VIDEODRIVER=dummy $(BUILD_TARGET) nonexistent.png /bin/true || true
+	SDL_VIDEODRIVER=dummy ./$(TARGET) nonexistent.png /bin/true || true
 	@echo "Smoke test finished"
 
-# Install binary system-wide (installs as gsplash)
-install: $(BUILD_TARGET)
-	install -Dm755 $(BUILD_TARGET) $(DESTDIR)$(PREFIX)/bin/$(notdir $(PKG_TARGET))
+install: $(TARGET)
+	install -d "$(DESTDIR)$(bindir)"
+	install -m 755 $(TARGET) "$(DESTDIR)$(bindir)/$(TARGET)"
 
-# Remove binary from system
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/$(notdir $(PKG_TARGET))
+	rm -f "$(DESTDIR)$(bindir)/$(TARGET)"
 
-# Clean build artifacts and package output
 clean:
-	rm -f $(BUILD_TARGET) $(PKG_TARGET) dist/$(notdir $(PKG_TOP)).tar.gz
-
-.PHONY: all install uninstall clean
-uninstall:
+	rm -f $(TARGET)

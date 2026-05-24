@@ -28,18 +28,32 @@ makepkg -si
 For other distributions, build and install manually:
 
 ```bash
+# Build the binary in the project root
 make
+
+# Install system-wide (defaults to /usr/local)
 sudo make install
+
+# Staged install (useful for packaging):
+DESTDIR=/some/staging/path make install
+```
+
+## Smoke test (headless)
+
+Run a lightweight headless smoke test that uses the dummy video driver so it doesn't require a display:
+
+```bash
+make check
 ```
 
 ## Usage
 
-Build output installs to `/usr/local/bin` by default. Override with `PREFIX`.
-
 ```bash
-gsplash <image_path> <game_executable> [game_arguments...]
+./gsplash <image_path> <game_executable> [game_arguments...]
 ```
 
+Example:
+
 ```bash
-gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
+./gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
 ```
