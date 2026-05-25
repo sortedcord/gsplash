@@ -393,7 +393,27 @@ int main(int argc, char *argv[])
     }
     else
     {
-        texture = IMG_LoadTexture(renderer, image_path);
+        SDL_Surface *surface = IMG_Load(image_path);
+        if (surface)
+        {
+            SDL_Surface *rgba_surface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+            SDL_FreeSurface(surface);
+            if (rgba_surface)
+            {
+                texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
+                                            SDL_TEXTUREACCESS_STREAMING,
+                                            rgba_surface->w, rgba_surface->h);
+                if (texture)
+                {
+                    SDL_UpdateTexture(texture, NULL, rgba_surface->pixels, rgba_surface->pitch);
+                }
+                else
+                {
+                    log_error("Failed to create texture: %s", SDL_GetError());
+                }
+                SDL_FreeSurface(rgba_surface);
+            }
+        }
         if (!texture && init_video_player(&video_player, renderer, image_path))
         {
             video_active = true;
@@ -531,6 +551,22 @@ int main(int argc, char *argv[])
                     {
                         log_info("Splash window hidden (focus lost)");
                         SDL_HideWindow(window); // Instantly make splash transparent/invisible
+                    }
+                    // Re-render static image when compositor requests a redraw
+                    if (event.window.event == SDL_WINDOWEVENT_EXPOSED && texture && !video_active)
+                    {
+                        int out_w = 0, out_h = 0;
+                        SDL_GetRendererOutputSize(renderer, &out_w, &out_h);
+                        int tex_w = 0, tex_h = 0;
+                        SDL_QueryTexture(texture, NULL, NULL, &tex_w, &tex_h);
+                        SDL_Rect dst_rect = {0, 0, 0, 0};
+                        compute_dest_rect(tex_w, tex_h, out_w, out_h, render_mode, &dst_rect);
+                        SDL_RenderClear(renderer);
+                        if (dst_rect.w > 0 && dst_rect.h > 0)
+                            SDL_RenderCopy(renderer, texture, NULL, &dst_rect);
+                        else
+                            SDL_RenderCopy(renderer, texture, NULL, NULL);
+                        SDL_RenderPresent(renderer);
                     }
                 }
                 if (event.type == SDL_KEYDOWN)
