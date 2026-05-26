@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
                     {
                         log_info("Splash window hidden (focus lost), scheduling hide");
                         hide_scheduled = true;
-                        hide_time = SDL_GetTicks() + 250; // 250ms delay to prevent desktop flash
+                        hide_time = SDL_GetTicks() + 100; // 100ms delay to prevent desktop flash
                     }
                     // Re-render static image when compositor requests a redraw
                     if (event.window.event == SDL_WINDOWEVENT_EXPOSED && texture && !video_active)

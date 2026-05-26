@@ -159,23 +159,26 @@ void cleanup_video_player(VideoPlayer *player)
 
 bool decode_next_frame(VideoPlayer *player)
 {
-    AVPacket packet;
-    av_init_packet(&packet);
-
-    while (av_read_frame(player->format_ctx, &packet) >= 0)
+    AVPacket *packet = av_packet_alloc();
+    if (!packet)
     {
-        if (packet.stream_index != player->stream_index)
+        return false;
+    }
+
+    while (av_read_frame(player->format_ctx, packet) >= 0)
+    {
+        if (packet->stream_index != player->stream_index)
         {
-            av_packet_unref(&packet);
+            av_packet_unref(packet);
             continue;
         }
 
-        if (avcodec_send_packet(player->codec_ctx, &packet) < 0)
+        if (avcodec_send_packet(player->codec_ctx, packet) < 0)
         {
-            av_packet_unref(&packet);
+            av_packet_unref(packet);
             continue;
         }
-        av_packet_unref(&packet);
+        av_packet_unref(packet);
 
         while (true)
         {
@@ -186,6 +189,7 @@ bool decode_next_frame(VideoPlayer *player)
             }
             if (ret < 0)
             {
+                av_packet_free(&packet);
                 return false;
             }
 
@@ -195,11 +199,13 @@ bool decode_next_frame(VideoPlayer *player)
 
             SDL_UpdateTexture(player->texture, NULL, player->rgba_frame->data[0],
                               player->rgba_frame->linesize[0]);
+            av_packet_free(&packet);
             return true;
         }
     }
 
     av_seek_frame(player->format_ctx, player->stream_index, 0, AVSEEK_FLAG_BACKWARD);
     avcodec_flush_buffers(player->codec_ctx);
+    av_packet_free(&packet);
     return false;
 }
