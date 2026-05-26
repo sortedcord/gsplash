@@ -41,6 +41,36 @@ sudo make install
 DESTDIR=/some/staging/path make install
 ```
 
+## Usage
+
+```bash
+gsplash <image_or_video_path> <game_executable> [game_arguments...]
+```
+
+Example:
+
+```bash
+gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
+
+# Video splash (supported formats depend on ffmpeg build)
+gsplash assets/splash.mp4 /path/to/game --fullscreen --profile=default
+```
+
+Gsplash allows you to configure how the image or video is displayed with 3 modes:
+
+- `center` (default): letterbox
+- `crop`: fill screen by cropping
+- `stretch`: Distort to fill screen
+
+You can set these by using the `-m` or `--mode` flag:
+
+```bash
+build/gsplash [--mode=stretch|center|crop] <background> <executable> [args...]
+
+build/gsplash -m stretch|center|crop <background> <executable> [args...]
+```
+
+
 ## Testing
 
 Gsplash includes several testing utilities to ensure proper functionality without requiring a heavy game binary.
@@ -73,31 +103,3 @@ For manual testing, a `dummy_game` binary is built alongside `gsplash`. It mimic
 ./build/gsplash path/to/image.png ./build/dummy_game 10
 ```
 
-## Usage
-
-```bash
-gsplash <image_or_video_path> <game_executable> [game_arguments...]
-```
-
-Example:
-
-```bash
-gsplash assets/splash.jpg /path/to/game --fullscreen --profile=default
-
-# Video splash (supported formats depend on ffmpeg build)
-gsplash assets/splash.mp4 /path/to/game --fullscreen --profile=default
-```
-
-Gsplash allows you to configure how the image or video is displayed with 3 modes:
-
-- `center` (default): letterbox
-- `crop`: fill screen by cropping
-- `stretch`: Distort to fill screen
-
-You can set these by using the `-m` or `--mode` flag:
-
-```bash
-build/gsplash [--mode=stretch|center|crop] <background> <executable> [args...]
-
-build/gsplash -m stretch|center|crop <background> <executable> [args...]
-```
