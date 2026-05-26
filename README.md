@@ -2,10 +2,7 @@
 
 A fullscreen splash-screen wrapper for launching a game or app. It displays an image (or a fallback black screen), starts your executable, and closes when the process exits or loses focus after launch.
 
-<video src="docs/assets/demo.mp4" controls loop muted playsinline style="max-width:100%;height:auto;">
-    Your browser does not support the video tag. View or download the video directly:
-    <a href="docs/assets/demo.mp4">docs/assets/demo.mp4</a>
-</video>
+https://github.com/user-attachments/assets/22da49b4-0f1f-4208-8d0b-9eeef14e35e5
 
 ## Features
 
