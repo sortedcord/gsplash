@@ -18,7 +18,7 @@ ALL_LIBS := $(LIBS) $(SDL_LIBS) $(FFMPEG_LIBS) -lm
 BUILD_DIR ?= build
 TARGET = $(BUILD_DIR)/gsplash
 DUMMY_TARGET = $(BUILD_DIR)/dummy_game
-SRC = src/gsplash.c
+SRC = src/gsplash.c src/video.c
 DUMMY_SRC = src/dummy_game.c
 
 .PHONY: all clean install uninstall check
