@@ -2,6 +2,8 @@
 
 A fullscreen splash-screen wrapper for launching a game or app. It displays an image (or a fallback black screen), starts your executable, and closes when the process exits or loses focus after launch.
 
+![video](docs/assets/demo.mp4)
+
 ## Features
 
 1. Fullscreen, borderless splash screen with hidden cursor (SDL2)
