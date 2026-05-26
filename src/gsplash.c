@@ -275,6 +275,8 @@ int main(int argc, char *argv[])
         // Inside Parent Process: Manage splash screen lifecycle
         int running = 1;
         SDL_Event event;
+        bool hide_scheduled = false;
+        Uint32 hide_time = 0;
 
         while (running)
         {
@@ -337,10 +339,11 @@ int main(int argc, char *argv[])
                 if (event.type == SDL_WINDOWEVENT)
                 {
                     // THE MOMENT THE GAME WINDOW STEALS FOCUS:
-                    if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+                    if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST && !hide_scheduled)
                     {
-                        log_info("Splash window hidden (focus lost)");
-                        SDL_HideWindow(window); // Instantly make splash transparent/invisible
+                        log_info("Splash window hidden (focus lost), scheduling hide");
+                        hide_scheduled = true;
+                        hide_time = SDL_GetTicks() + 250; // 250ms delay to prevent desktop flash
                     }
                     // Re-render static image when compositor requests a redraw
                     if (event.window.event == SDL_WINDOWEVENT_EXPOSED && texture && !video_active)
@@ -367,6 +370,13 @@ int main(int argc, char *argv[])
                         running = 0; // Emergency escape key loop override
                     }
                 }
+            }
+
+            if (hide_scheduled && SDL_GetTicks() >= hide_time)
+            {
+                log_info("Hiding splash window (delayed)");
+                SDL_HideWindow(window);
+                hide_scheduled = false;
             }
 
             if (video_active)
