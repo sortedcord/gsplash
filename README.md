@@ -39,12 +39,36 @@ sudo make install
 DESTDIR=/some/staging/path make install
 ```
 
-## Smoke test (headless)
+## Testing
 
-Run a lightweight headless smoke test that uses the dummy video driver so it doesn't require a display:
+Gsplash includes several testing utilities to ensure proper functionality without requiring a heavy game binary.
+
+### Automated Testing
+
+Run the automated test suite (which includes a headless smoke test and CLI argument validation) using:
 
 ```bash
 make check
+```
+
+### Interactive Visual Testing
+
+To physically test the splash screen rendering modes (`stretch`, `center`, `crop`) with a real image, use the interactive test script. It launches `gsplash` with each mode and prompts you to confirm if it displayed correctly:
+
+```bash
+./tests/test_interactive.sh path/to/your/image.png
+```
+*(Tip: You can place your test images in the `tests/assets/` directory).*
+
+### Dummy Game Utility
+
+For manual testing, a `dummy_game` binary is built alongside `gsplash`. It mimics a real game by sleeping to simulate startup time, creating an SDL window to trigger `gsplash`'s focus loss detection and exiting cleanly.
+
+```bash
+./build/gsplash path/to/image.png ./build/dummy_game
+
+# Test with a custom 10 second simulated game load time
+./build/gsplash path/to/image.png ./build/dummy_game 10
 ```
 
 ## Usage

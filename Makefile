@@ -17,11 +17,13 @@ ALL_LIBS := $(LIBS) $(SDL_LIBS) $(FFMPEG_LIBS) -lm
 
 BUILD_DIR ?= build
 TARGET = $(BUILD_DIR)/gsplash
+DUMMY_TARGET = $(BUILD_DIR)/dummy_game
 SRC = src/gsplash.c
+DUMMY_SRC = src/dummy_game.c
 
 .PHONY: all clean install uninstall check
 
-all: $(TARGET)
+all: $(TARGET) $(DUMMY_TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -29,11 +31,16 @@ $(BUILD_DIR):
 $(TARGET): $(BUILD_DIR) $(SRC)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) $(SRC) -o $@ $(ALL_LIBS)
 
+$(DUMMY_TARGET): $(BUILD_DIR) $(DUMMY_SRC)
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) $(LDFLAGS) $(DUMMY_SRC) -o $@ $(SDL_LIBS)
+
 # Lightweight smoke test (headless via SDL_VIDEODRIVER=dummy)
-check: $(TARGET)
+check: $(TARGET) $(DUMMY_TARGET)
 	@echo "Running smoke test (headless)..."
 	SDL_VIDEODRIVER=dummy $(TARGET) nonexistent.png /bin/true || true
-	@echo "Smoke test finished"
+	@echo "Running CLI test suite..."
+	./tests/test_cli.sh
+	@echo "All tests finished successfully"
 
 install: $(TARGET)
 	install -d "$(DESTDIR)$(bindir)"
@@ -43,4 +50,4 @@ uninstall:
 	rm -f "$(DESTDIR)$(bindir)/gsplash"
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(DUMMY_TARGET)

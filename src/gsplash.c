@@ -317,8 +317,14 @@ int main(int argc, char *argv[])
         render_mode = parse_render_mode(argv[1] + 7);
         arg_index += 1;
     }
-    else if (argc >= 4 && strcmp(argv[1], "-m") == 0)
+    else if (argc >= 2 && strcmp(argv[1], "-m") == 0)
     {
+        if (argc < 4)
+        {
+            log_error("Usage: %s [--mode=stretch|center|crop] <image_path> <game_executable> [args...]", argv[0]);
+            log_error("       %s -m stretch|center|crop <image_path> <game_executable> [args...]", argv[0]);
+            return 1;
+        }
         render_mode = parse_render_mode(argv[2]);
         arg_index += 2;
     }
@@ -333,7 +339,7 @@ int main(int argc, char *argv[])
     const char *image_path = argv[arg_index];
     const char *game_path = argv[arg_index + 1];
 
-    log_info("Starting splash: image='%s', game='%s'", image_path, game_path);
+    log_info("Starting splash: image='%s', game='%s', mode=%d", image_path, game_path, render_mode);
 
     // Initialize SDL2 Video subsystems
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
