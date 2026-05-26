@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
         log_error("SDL Init Failed: %s", SDL_GetError());
         return 1;
     }
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     log_info("SDL initialized");
 
     // Initialize JPEG and PNG decoders
@@ -308,7 +309,12 @@ int main(int argc, char *argv[])
                 {
                     // If decoding fails or loops, try again on next tick
                 }
-                video_player.next_frame_tick = SDL_GetTicks() + (Uint32)video_player.frame_delay_ms;
+                video_player.next_frame_tick += (Uint32)video_player.frame_delay_ms;
+                Uint32 now = SDL_GetTicks();
+                if ((Sint32)(now - video_player.next_frame_tick) > 100)
+                {
+                    video_player.next_frame_tick = now;
+                }
 
                 SDL_RenderClear(renderer);
                 SDL_Rect dst_rect = {0, 0, 0, 0};
@@ -362,7 +368,20 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            SDL_Delay(33); // ~30 FPS polling loop to ensure near-zero CPU usage
+
+            if (video_active)
+            {
+                Uint32 now = SDL_GetTicks();
+                if ((Sint32)(video_player.next_frame_tick - now) > 0)
+                {
+                    Uint32 delay = video_player.next_frame_tick - now;
+                    SDL_Delay(delay > 33 ? 33 : delay);
+                }
+            }
+            else
+            {
+                SDL_Delay(33); // ~30 FPS polling loop to ensure near-zero CPU usage
+            }
         }
     }
 
