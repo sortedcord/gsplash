@@ -22,7 +22,13 @@ https://github.com/user-attachments/assets/22da49b4-0f1f-4208-8d0b-9eeef14e35e5
 
 ## Install
 
-Arch Linux (PKGBUILD) for integrating with your system package manager:
+Arch Linux users can install the latest development package from the [AUR](https://aur.archlinux.org/packages/gsplash-git) using an AUR helper like `yay` or `paru`:
+
+```bash
+yay -S gsplash-git
+```
+
+Alternatively, you can build it manually using the provided PKGBUILD:
 
 ```bash
 cd packaging/arch
