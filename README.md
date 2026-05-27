@@ -25,6 +25,7 @@ https://github.com/user-attachments/assets/22da49b4-0f1f-4208-8d0b-9eeef14e35e5
 Arch Linux (PKGBUILD) for integrating with your system package manager:
 
 ```bash
+cd packaging/arch
 makepkg -si
 ```
 
