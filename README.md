@@ -103,3 +103,6 @@ For manual testing, a `dummy_game` binary is built alongside `gsplash`. It mimic
 ./build/gsplash path/to/image.png ./build/dummy_game 10
 ```
 
+## Contributing
+
+Please go through the [CONTRIBUTING.md](CONTRIBUTING.md) guidelines if you'd like to contribute to gsplash.
