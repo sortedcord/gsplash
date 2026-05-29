@@ -17,6 +17,7 @@ typedef struct VideoPlayer {
   uint8_t* rgba_buffer;
   int rgba_buffer_size;
   int stream_index;
+  int audio_stream_index;
   int width;
   int height;
   int frame_delay_ms;

@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "audio.h"
 #include "video.h"
 
 static void log_info(const char* fmt, ...) {
@@ -146,8 +147,8 @@ int main(int argc, char* argv[]) {
   log_info("Starting splash: image='%s', game='%s', mode=%d", image_path,
            game_path, render_mode);
 
-  // Initialize SDL2 Video subsystems
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+  // Initialize SDL2 Video and Audio subsystems
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
     log_error("SDL Init Failed: %s", SDL_GetError());
     return 1;
   }
@@ -176,9 +177,8 @@ int main(int argc, char* argv[]) {
   }
   log_info("Fullscreen borderless window created");
 
-  SDL_ShowCursor(SDL_DISABLE);  // Hide the mouse pointer
+  SDL_ShowCursor(SDL_DISABLE);
 
-  // Create a hardware-accelerated renderer
   SDL_Renderer* renderer =
       SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   if (renderer) {
@@ -186,11 +186,22 @@ int main(int argc, char* argv[]) {
   }
   SDL_Texture* texture = NULL;
   VideoPlayer video_player;
+  AudioPlayer audio_player;
   bool video_active = false;
+  bool audio_active = false;
 
   if (has_video_extension(image_path)) {
     if (init_video_player(&video_player, renderer, image_path)) {
       video_active = true;
+      if (video_player.audio_stream_index >= 0) {
+        if (init_audio_player(&audio_player, image_path)) {
+          audio_active = true;
+          log_info("Audio stream loaded and initialized");
+        } else {
+          log_info(
+              "Video has audio stream but failed to initialize audio player");
+        }
+      }
     } else {
       log_error("Failed to open video '%s'; showing black screen", image_path);
     }
@@ -215,13 +226,18 @@ int main(int argc, char* argv[]) {
     }
     if (!texture && init_video_player(&video_player, renderer, image_path)) {
       video_active = true;
+      if (video_player.audio_stream_index >= 0) {
+        if (init_audio_player(&audio_player, image_path)) {
+          audio_active = true;
+          log_info("Audio stream loaded and initialized");
+        }
+      }
     }
   }
 
   if (!texture && !video_active) {
     log_error("Failed to load splash image '%s': %s; showing black screen",
               image_path, IMG_GetError());
-    // Fallback: Clear to solid black if image file is broken
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
@@ -263,7 +279,6 @@ int main(int argc, char* argv[]) {
   log_info("Launching game executable");
   pid_t pid = fork();
   if (pid == 0) {
-    // Inside Child Process: Hand over execution directly to the game binary
     log_info("Execing game: %s", game_path);
     execvp(game_path, &argv[arg_index + 1]);
     log_error("Failed to launch target game executable '%s': %s", game_path,
@@ -273,14 +288,12 @@ int main(int argc, char* argv[]) {
     log_error("Failed to fork process: %s", strerror(errno));
   } else {
     log_info("Game process started (pid=%d)", pid);
-    // Inside Parent Process: Manage splash screen lifecycle
     int running = 1;
     SDL_Event event;
     bool hide_scheduled = false;
     Uint32 hide_time = 0;
 
     while (running) {
-      // Non-blocking check: Has the game quit?
       int status;
       pid_t result = waitpid(pid, &status, WNOHANG);
       if (result > 0) {
@@ -291,15 +304,14 @@ int main(int argc, char* argv[]) {
         } else {
           log_info("Game exited");
         }
-        break;  // Game closed, break the loop and close the script
+        break;
       } else if (result < 0) {
         log_error("waitpid failed: %s", strerror(errno));
-        break;  // Process error safetynet
+        break;
       }
 
       if (video_active && SDL_GetTicks() >= video_player.next_frame_tick) {
         if (!decode_next_frame(&video_player)) {
-          // If decoding fails or loops, try again on next tick
         }
         video_player.next_frame_tick += (Uint32)video_player.frame_delay_ms;
         Uint32 now = SDL_GetTicks();
@@ -318,22 +330,18 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);
       }
 
-      // Check desktop server window events
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
           log_info("Splash dismissed via window close");
           running = 0;
         }
         if (event.type == SDL_WINDOWEVENT) {
-          // THE MOMENT THE GAME WINDOW STEALS FOCUS:
           if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST &&
               !hide_scheduled) {
             log_info("Splash window hidden (focus lost), scheduling hide");
             hide_scheduled = true;
-            hide_time =
-                SDL_GetTicks() + 100;  // 100ms delay to prevent desktop flash
+            hide_time = SDL_GetTicks() + 100;
           }
-          // Re-render static image when compositor requests a redraw
           if (event.window.event == SDL_WINDOWEVENT_EXPOSED && texture &&
               !video_active) {
             int out_w = 0, out_h = 0;
@@ -354,7 +362,7 @@ int main(int argc, char* argv[]) {
         if (event.type == SDL_KEYDOWN) {
           if (event.key.keysym.sym == SDLK_ESCAPE) {
             log_info("Splash dismissed via escape key");
-            running = 0;  // Emergency escape key loop override
+            running = 0;
           }
         }
       }
@@ -372,7 +380,7 @@ int main(int argc, char* argv[]) {
           SDL_Delay(delay > 33 ? 33 : delay);
         }
       } else {
-        SDL_Delay(33);  // ~30 FPS polling loop to ensure near-zero CPU usage
+        SDL_Delay(33);
       }
     }
   }
@@ -380,6 +388,7 @@ int main(int argc, char* argv[]) {
   // Clean up memory space
   if (texture) SDL_DestroyTexture(texture);
   if (video_active) cleanup_video_player(&video_player);
+  if (audio_active) cleanup_audio_player(&audio_player);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   IMG_Quit();

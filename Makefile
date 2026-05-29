@@ -12,8 +12,8 @@ PKG_CONFIG ?= pkg-config
 
 SDL_CFLAGS := $(shell $(PKG_CONFIG) --cflags sdl2 SDL2_image)
 SDL_LIBS := $(shell $(PKG_CONFIG) --libs sdl2 SDL2_image)
-FFMPEG_CFLAGS := $(shell $(PKG_CONFIG) --cflags libavformat libavcodec libswscale libavutil)
-FFMPEG_LIBS := $(shell $(PKG_CONFIG) --libs libavformat libavcodec libswscale libavutil)
+FFMPEG_CFLAGS := $(shell $(PKG_CONFIG) --cflags libavformat libavcodec libswscale libswresample libavutil)
+FFMPEG_LIBS := $(shell $(PKG_CONFIG) --libs libavformat libavcodec libswscale libswresample libavutil)
 
 ALL_CFLAGS := $(CFLAGS) $(SDL_CFLAGS) $(FFMPEG_CFLAGS)
 ALL_LIBS := $(LIBS) $(SDL_LIBS) $(FFMPEG_LIBS) -lm
@@ -21,7 +21,7 @@ ALL_LIBS := $(LIBS) $(SDL_LIBS) $(FFMPEG_LIBS) -lm
 BUILD_DIR ?= build
 TARGET = $(BUILD_DIR)/gsplash
 DUMMY_TARGET = $(BUILD_DIR)/dummy_game
-SRC = src/gsplash.c src/video.c
+SRC = src/gsplash.c src/video.c src/audio.c
 DUMMY_SRC = src/dummy_game.c
 
 .PHONY: all clean install uninstall check

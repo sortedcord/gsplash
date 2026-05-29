@@ -44,11 +44,15 @@ bool init_video_player(VideoPlayer* player, SDL_Renderer* renderer,
   }
 
   player->stream_index = -1;
+  player->audio_stream_index = -1;
+
   for (unsigned int i = 0; i < player->format_ctx->nb_streams; ++i) {
     if (player->format_ctx->streams[i]->codecpar->codec_type ==
-        AVMEDIA_TYPE_VIDEO) {
+        AVMEDIA_TYPE_VIDEO && player->stream_index < 0) {
       player->stream_index = (int)i;
-      break;
+    } else if (player->format_ctx->streams[i]->codecpar->codec_type ==
+                   AVMEDIA_TYPE_AUDIO && player->audio_stream_index < 0) {
+      player->audio_stream_index = (int)i;
     }
   }
 
