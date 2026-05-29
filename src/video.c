@@ -4,6 +4,14 @@
 #include <string.h>
 
 bool has_video_extension(const char* path) {
+  /*
+  Check if the file extension of the given path matches common video formats.
+  */
+
+  // TODO: Instead of checking file extension, use MIME type detection
+
+  // Check if the given path has an extension by looking for the last dot
+  // character.
   const char* dot = strrchr(path, '.');
   if (!dot || dot == path) {
     return false;

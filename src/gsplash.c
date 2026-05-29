@@ -51,11 +51,26 @@ static RenderMode parse_render_mode(const char* value) {
 
 static void compute_dest_rect(int src_w, int src_h, int out_w, int out_h,
                               RenderMode mode, SDL_Rect* dst) {
+  /*
+  Calculate the destination rectangle for rendering the splash image/video based
+  on the specified render mode. The rectangle is centered by default, and its
+  size is adjusted according to the mode:
+
+  - RENDER_STRETCH: The image/video is stretched to fill the entire output area,
+    ignoring aspect ratio.
+  - RENDER_CENTER: The image/video is scaled to fit within the output area while
+    maintaining aspect ratio, and centered with potential letterboxing.
+  - RENDER_CROP: The image/video is scaled to fill the entire output area while
+    maintaining aspect ratio, and centered with potential cropping.
+  */
+
+  // Set default to full output size (stretch)
   dst->x = 0;
   dst->y = 0;
   dst->w = out_w;
   dst->h = out_h;
 
+  // Safety check
   if (src_w <= 0 || src_h <= 0 || out_w <= 0 || out_h <= 0) {
     return;
   }
@@ -81,34 +96,38 @@ int main(int argc, char* argv[]) {
   RenderMode render_mode = RENDER_CENTER;
   int arg_index = 1;
 
-  if (argc >= 3 && strncmp(argv[1], "--mode=", 7) == 0) {
-    render_mode = parse_render_mode(argv[1] + 7);
-    arg_index += 1;
-  } else if (argc >= 2 && strcmp(argv[1], "-m") == 0) {
-    if (argc < 4) {
-      log_error(
-          "Usage: %s [--mode=stretch|center|crop] <image_path> "
-          "<game_executable> [args...]",
-          argv[0]);
-      log_error(
-          "       %s -m stretch|center|crop <image_path> <game_executable> "
-          "[args...]",
-          argv[0]);
+  while (arg_index < argc && argv[arg_index][0] == '-') {
+    if (strcmp(argv[arg_index], "--") == 0) {
+      arg_index++;
+      break;
+    } else if (strncmp(argv[arg_index], "--mode=", 7) == 0) {
+      render_mode = parse_render_mode(argv[arg_index] + 7);
+      arg_index++;
+    } else if (strcmp(argv[arg_index], "-m") == 0) {
+      if (arg_index + 1 >= argc) {
+        log_error("Missing value for option -m");
+        return 1;
+      }
+      render_mode = parse_render_mode(argv[arg_index + 1]);
+      arg_index += 2;
+    } else if (strcmp(argv[arg_index], "-h") == 0 ||
+               strcmp(argv[arg_index], "--help") == 0) {
+      printf("Usage: %s [options] <image_path> <game_executable> [args...]\n",
+             argv[0]);
+      printf("Options:\n");
+      printf(
+          "  -m, --mode=MODE   Set render mode: stretch, center (default), "
+          "crop\n");
+      printf("  -h, --help        Show this help message\n");
+      return 0;
+    } else {
+      log_error("Unknown option: %s", argv[arg_index]);
       return 1;
     }
-    render_mode = parse_render_mode(argv[2]);
-    arg_index += 2;
   }
 
   if (argc - arg_index < 2) {
-    log_error(
-        "Usage: %s [--mode=stretch|center|crop] <image_path> <game_executable> "
-        "[args...]",
-        argv[0]);
-    log_error(
-        "       %s -m stretch|center|crop <image_path> <game_executable> "
-        "[args...]",
-        argv[0]);
+    log_error("Missing required arguments. Use --help for usage.");
     return 1;
   }
 
