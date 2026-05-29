@@ -96,6 +96,10 @@ int main(int argc, char* argv[]) {
   RenderMode render_mode = RENDER_CENTER;
   int arg_index = 1;
 
+#ifndef GSPLASH_VERSION
+#define GSPLASH_VERSION "unknown"
+#endif
+
   while (arg_index < argc && argv[arg_index][0] == '-') {
     if (strcmp(argv[arg_index], "--") == 0) {
       arg_index++;
@@ -110,11 +114,16 @@ int main(int argc, char* argv[]) {
       }
       render_mode = parse_render_mode(argv[arg_index + 1]);
       arg_index += 2;
+    } else if (strcmp(argv[arg_index], "--version") == 0 ||
+               strcmp(argv[arg_index], "-v") == 0) {
+      printf("gsplash version %s\n", GSPLASH_VERSION);
+      return 0;
     } else if (strcmp(argv[arg_index], "-h") == 0 ||
                strcmp(argv[arg_index], "--help") == 0) {
       printf("Usage: %s [options] <image_path> <game_executable> [args...]\n",
              argv[0]);
       printf("Options:\n");
+      printf("  -v, --version     Show version information\n");
       printf(
           "  -m, --mode=MODE   Set render mode: stretch, center (default), "
           "crop\n");

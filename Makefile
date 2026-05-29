@@ -1,10 +1,13 @@
 # Makefile for gsplash (community-standard layout)
 
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "unknown")
+
 PREFIX ?= /usr/local
 bindir ?= $(PREFIX)/bin
 
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra
+CFLAGS += -DGSPLASH_VERSION=\"$(VERSION)\"
 PKG_CONFIG ?= pkg-config
 
 SDL_CFLAGS := $(shell $(PKG_CONFIG) --cflags sdl2 SDL2_image)
